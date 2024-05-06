@@ -1,0 +1,35 @@
+#maze {
+    width: 400px;
+    height: 400px;
+    border: 2px solid black;
+    position: relative;
+}
+
+.cell {
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border: 1px solid black;
+    position: absolute;
+}
+
+.start {
+    background-color: green;
+}
+
+.end {
+    background-color: red;
+}
+
+.wall {
+    background-color: black;
+}
+
+.player {
+    width: 20px;
+    height: 20px;
+    background-color: blue;
+    position: absolute;
+    border-radius: 50%;
+    z-index: 1;
+}
