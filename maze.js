@@ -5,7 +5,7 @@ const height = 20;
 const mazeCells = [];
 
 let playerPosition = 0;
-const player = document.createElement('div');
+let player = document.createElement('div');
 player.classList.add('player');
 maze.appendChild(player);
 
@@ -23,7 +23,7 @@ for (let row = 0; row < height; row++) {
 function addWalls() {
     const totalCells = width * height;
 
-    const numWalls = Math.floor(totalCells * 0.2);
+    const numWalls = Math.floor(totalCells * 0.4);
 
     const wallCells = [];
 
@@ -46,7 +46,8 @@ function addStartAndEnd() {
 }
 
 function movePlayer(event) {
-    console.log("evento", event)
+    console.log('Tecla pressionada:', event.key);
+    console.log('Posição do jogador antes de mover:', playerPosition);
     switch (event.key) {
         case 'ArrowUp':
             if (playerPosition >= width) {
@@ -70,10 +71,14 @@ function movePlayer(event) {
             break;
     }
 
+    console.log('Nova posição do jogador após mover:', playerPosition);
+
     const cell = mazeCells[playerPosition];
     const playerStyle = player.style;
     playerStyle.top = cell.style.top;
     playerStyle.left = cell.style.left;
+
+    console.log('Posição visual do jogador atualizada para:', playerStyle.top, playerStyle.left);
 
     if (playerPosition === mazeCells.length - 1) {
         alert('Parabéns! Você chegou ao fim do labirinto!');
@@ -85,9 +90,17 @@ function movePlayer(event) {
 document.addEventListener('keydown', movePlayer);
 
 function resetGame() {
-    player.classList.remove('player');
+    player.remove();
+
+    const newPlayer = document.createElement('div');
+    newPlayer.classList.add('player');
+    maze.appendChild(newPlayer);
+
     playerPosition = 0;
-    mazeCells[playerPosition].classList.add('player');
+
+    player = newPlayer;
+
+    player.addEventListener('keydown', movePlayer);
 }
 
 addWalls();
