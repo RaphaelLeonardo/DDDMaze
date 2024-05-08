@@ -1,107 +1,149 @@
-const maze = document.getElementById('maze');
+// Definir as variáveis globais da cena, câmera e renderizador
+var scene, camera, renderer;
 
-const width = 20;
-const height = 20;
-const mazeCells = [];
+// Variáveis globais para o jogador e as paredes do labirinto
+var player, walls = [];
 
-let playerPosition = 0;
-let player = document.createElement('div');
-player.classList.add('player');
-maze.appendChild(player);
+// Função para criar o jogador
+function createPlayer() {
+    var geometry = new THREE.BoxGeometry(5, 5, 5); // Geometria do jogador (cubo)
+    var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); // Material verde
+    player = new THREE.Mesh(geometry, material); // Criar o jogador
+    scene.add(player); // Adicionar o jogador à cena
+}
 
-for (let row = 0; row < height; row++) {
-    for (let col = 0; col < width; col++) {
-        const cell = document.createElement('div');
-        cell.classList.add('cell');
-        cell.style.top = `${row * 20}px`;
-        cell.style.left = `${col * 20}px`;
-        mazeCells.push(cell);
-        maze.appendChild(cell);
+// Função para criar as paredes do labirinto
+function createWalls() {
+    var wallGeometry = new THREE.BoxGeometry(10, 10, 10); // Geometria das paredes (cubo)
+    var wallMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff }); // Material azul
+
+    // Criar as paredes do labirinto
+    for (var i = 0; i < 10; i++) {
+        var wall = new THREE.Mesh(wallGeometry, wallMaterial); // Criar uma parede
+        wall.position.set(i * 10 - 45, 5, 0); // Posicionar a parede
+        scene.add(wall); // Adicionar a parede à cena
+        walls.push(wall); // Adicionar a parede ao array de paredes
     }
 }
 
-function addWalls() {
-    const totalCells = width * height;
+// Função para mover o jogador
+function movePlayer(direction) {
+    var speed = 5; // Velocidade de movimento do jogador
 
-    const numWalls = Math.floor(totalCells * 0.4);
+    // Mover o jogador na direção especificada
+    switch (direction) {
+        case 'left':
+            player.position.x -= speed;
+            break;
+        case 'right':
+            player.position.x += speed;
+            break;
+        case 'forward':
+            player.position.z -= speed;
+            break;
+        case 'backward':
+            player.position.z += speed;
+            break;
+    }
 
-    const wallCells = [];
-
-    for (let i = 0; i < numWalls; i++) {
-        let randomIndex = Math.floor(Math.random() * totalCells);
-        while (randomIndex === 0 || randomIndex === totalCells - 1) {
-            randomIndex = Math.floor(Math.random() * totalCells);
+    // Detectar colisões com as paredes do labirinto
+    for (var i = 0; i < walls.length; i++) {
+        if (player.position.distanceTo(walls[i].position) < 10) {
+            // Se houver uma colisão, reverter o movimento do jogador
+            switch (direction) {
+                case 'left':
+                    player.position.x += speed;
+                    break;
+                case 'right':
+                    player.position.x -= speed;
+                    break;
+                case 'forward':
+                    player.position.z += speed;
+                    break;
+                case 'backward':
+                    player.position.z -= speed;
+                    break;
+            }
+            break; // Parar de verificar as colisões
         }
-        wallCells.push(randomIndex);
     }
-
-    wallCells.forEach(index => {
-        mazeCells[index].classList.add('wall');
-    });
 }
 
-function addStartAndEnd() {
-    mazeCells[0].classList.add('start');
-    mazeCells[mazeCells.length - 1].classList.add('end');
-}
-
-function movePlayer(event) {
-    console.log('Tecla pressionada:', event.key);
-    console.log('Posição do jogador antes de mover:', playerPosition);
+// Função para lidar com a entrada do teclado
+function handleKeyboardInput(event) {
+    console.log(event.key)
     switch (event.key) {
-        case 'ArrowUp':
-            if (playerPosition >= width) {
-                playerPosition -= width;
-            }
-            break;
-        case 'ArrowDown':
-            if (playerPosition < (height - 1) * width) {
-                playerPosition += width;
-            }
-            break;
         case 'ArrowLeft':
-            if (playerPosition % width !== 0) {
-                playerPosition -= 1;
-            }
+            movePlayer('left');
             break;
         case 'ArrowRight':
-            if ((playerPosition + 1) % width !== 0) {
-                playerPosition += 1;
-            }
+            movePlayer('right');
+            break;
+        case 'ArrowUp':
+            movePlayer('forward');
+            break;
+        case 'ArrowDown':
+            movePlayer('backward');
             break;
     }
+}
 
-    console.log('Nova posição do jogador após mover:', playerPosition);
+// Adicionar evento de teclado para mover o jogador
 
-    const cell = mazeCells[playerPosition];
-    const playerStyle = player.style;
-    playerStyle.top = cell.style.top;
-    playerStyle.left = cell.style.left;
+// Chamar as funções para criar o jogador e as paredes do labirinto
 
-    console.log('Posição visual do jogador atualizada para:', playerStyle.top, playerStyle.left);
-
-    if (playerPosition === mazeCells.length - 1) {
-        alert('Parabéns! Você chegou ao fim do labirinto!');
-
-        resetGame();
+// Função para verificar se o jogador alcançou o final do labirinto
+function checkGoal() {
+    if (player.position.distanceTo(walls[walls.length - 1].position) < 10) {
+        alert('Parabéns! Você chegou ao final do labirinto!');
+        resetGame(); // Reiniciar o jogo
     }
 }
 
-document.addEventListener('keydown', movePlayer);
-
+// Função para reiniciar o jogo
 function resetGame() {
-    player.remove();
-
-    const newPlayer = document.createElement('div');
-    newPlayer.classList.add('player');
-    maze.appendChild(newPlayer);
-
-    playerPosition = 0;
-
-    player = newPlayer;
-
-    player.addEventListener('keydown', movePlayer);
+    // Reposicionar o jogador para a posição inicial
+    player.position.set(0, 5, -45);
 }
 
-addWalls();
-addStartAndEnd();
+// Chamar a função checkGoal() a cada frame
+function update() {
+    requestAnimationFrame(update); // Chamada recursiva para atualização
+    checkGoal(); // Verificar se o jogador alcançou o final do labirinto
+}
+
+// Iniciar a função update() para atualizar o jogo
+
+// Inicializar a cena, câmera e renderizador
+function init() {
+    // Criar a cena
+    scene = new THREE.Scene();
+
+    // Criar a câmera
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 50, 100); // Posicionar a câmera
+
+    // Criar o renderizador
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    // Adicionar o renderizador ao documento HTML
+    document.body.appendChild(renderer.domElement);
+
+    renderer.domElement.setAttribute('tabindex', '0');
+    renderer.domElement.focus();
+}
+
+// Função de animação
+function animate() {
+    requestAnimationFrame(animate); // Chamada recursiva para animação
+    renderer.render(scene, camera); // Renderizar a cena
+}
+
+// Chamar as funções init() e animate() para iniciar a aplicação
+init();
+animate();
+createPlayer();
+createWalls();
+update();
+document.addEventListener('keydown', handleKeyboardInput);
