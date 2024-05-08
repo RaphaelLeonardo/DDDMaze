@@ -1,107 +1,65 @@
-const maze = document.getElementById('maze');
+// Definir variáveis globais da cena, câmera e renderizador
+var scene, camera, renderer;
 
-const width = 20;
-const height = 20;
-const mazeCells = [];
+// Inicializar a cena, câmera e renderizador
+function init() {
+    // Criar a cena
+    scene = new THREE.Scene();
 
-let playerPosition = 0;
-let player = document.createElement('div');
-player.classList.add('player');
-maze.appendChild(player);
+    // Criar a câmera
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 50, 100); // Posicionar a câmera
 
-for (let row = 0; row < height; row++) {
-    for (let col = 0; col < width; col++) {
-        const cell = document.createElement('div');
-        cell.classList.add('cell');
-        cell.style.top = `${row * 20}px`;
-        cell.style.left = `${col * 20}px`;
-        mazeCells.push(cell);
-        maze.appendChild(cell);
-    }
-}
+    // Criar o renderizador
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
 
-function addWalls() {
-    const totalCells = width * height;
+    // Adicionar o renderizador ao documento HTML
+    document.body.appendChild(renderer.domElement);
 
-    const numWalls = Math.floor(totalCells * 0.4);
+    // Adicionar evento de foco ao renderizador para garantir que ele receba o foco do teclado
+    renderer.domElement.setAttribute('tabindex', '0');
+    renderer.domElement.focus();
 
-    const wallCells = [];
+    // Criar um plano para representar o chão
+    var groundGeometry = new THREE.PlaneGeometry(200, 200);
+    var groundMaterial = new THREE.MeshBasicMaterial({ color: 0x888888, side: THREE.DoubleSide });
+    var ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    ground.rotation.x = Math.PI / 2; // Rotacionar o plano para que fique no eixo X
+    scene.add(ground);
 
-    for (let i = 0; i < numWalls; i++) {
-        let randomIndex = Math.floor(Math.random() * totalCells);
-        while (randomIndex === 0 || randomIndex === totalCells - 1) {
-            randomIndex = Math.floor(Math.random() * totalCells);
+    // Criar um objeto para representar o jogador
+    var playerGeometry = new THREE.BoxGeometry(5, 5, 5);
+    var playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    var player = new THREE.Mesh(playerGeometry, playerMaterial);
+    player.position.set(0, 2.5, 0); // Posicionar o jogador no topo do plano
+    scene.add(player);
+
+    // Adicionar evento de teclado para mover o jogador
+    document.addEventListener('keydown', function (event) {
+        switch (event.key) {
+            case 'ArrowLeft':
+                player.position.x -= 5; // Mover para a esquerda
+                break;
+            case 'ArrowRight':
+                player.position.x += 5; // Mover para a direita
+                break;
+            case 'ArrowUp':
+                player.position.z -= 5; // Mover para frente
+                break;
+            case 'ArrowDown':
+                player.position.z += 5; // Mover para trás
+                break;
         }
-        wallCells.push(randomIndex);
-    }
-
-    wallCells.forEach(index => {
-        mazeCells[index].classList.add('wall');
     });
 }
 
-function addStartAndEnd() {
-    mazeCells[0].classList.add('start');
-    mazeCells[mazeCells.length - 1].classList.add('end');
+// Função de animação
+function animate() {
+    requestAnimationFrame(animate); // Chamada recursiva para animação
+    renderer.render(scene, camera); // Renderizar a cena
 }
 
-function movePlayer(event) {
-    console.log('Tecla pressionada:', event.key);
-    console.log('Posição do jogador antes de mover:', playerPosition);
-    switch (event.key) {
-        case 'ArrowUp':
-            if (playerPosition >= width) {
-                playerPosition -= width;
-            }
-            break;
-        case 'ArrowDown':
-            if (playerPosition < (height - 1) * width) {
-                playerPosition += width;
-            }
-            break;
-        case 'ArrowLeft':
-            if (playerPosition % width !== 0) {
-                playerPosition -= 1;
-            }
-            break;
-        case 'ArrowRight':
-            if ((playerPosition + 1) % width !== 0) {
-                playerPosition += 1;
-            }
-            break;
-    }
-
-    console.log('Nova posição do jogador após mover:', playerPosition);
-
-    const cell = mazeCells[playerPosition];
-    const playerStyle = player.style;
-    playerStyle.top = cell.style.top;
-    playerStyle.left = cell.style.left;
-
-    console.log('Posição visual do jogador atualizada para:', playerStyle.top, playerStyle.left);
-
-    if (playerPosition === mazeCells.length - 1) {
-        alert('Parabéns! Você chegou ao fim do labirinto!');
-
-        resetGame();
-    }
-}
-
-document.addEventListener('keydown', movePlayer);
-
-function resetGame() {
-    player.remove();
-
-    const newPlayer = document.createElement('div');
-    newPlayer.classList.add('player');
-    maze.appendChild(newPlayer);
-
-    playerPosition = 0;
-
-    player = newPlayer;
-
-    player.addEventListener('keydown', movePlayer);
-}
-
-addWalls();
-addStartAndEnd();
+// Chamar as funções init() e animate() para iniciar a aplicação
+init();
+animate();
