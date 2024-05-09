@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 // Definir variáveis globais da cena, câmera e renderizador
 var scene, camera, renderer;
 
