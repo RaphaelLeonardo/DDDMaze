@@ -38677,7 +38677,7 @@ var _OrbitControls = require("three/examples/jsm/controls/OrbitControls");
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 // Definir variáveis globais da cena, câmera e renderizador
-var scene, camera, renderer;
+var scene, camera, renderer, controls;
 
 // Inicializar a cena, câmera e renderizador
 function init() {
@@ -38694,10 +38694,6 @@ function init() {
 
   // Adicionar o renderizador ao documento HTML
   document.body.appendChild(renderer.domElement);
-
-  // Adicionar evento de foco ao renderizador para garantir que ele receba o foco do teclado
-  renderer.domElement.setAttribute('tabindex', '0');
-  renderer.domElement.focus();
 
   // Criar um plano para representar o chão
   var groundGeometry = new THREE.PlaneGeometry(200, 200);
@@ -38718,49 +38714,13 @@ function init() {
   player.position.set(0, 2.5, 0); // Posicionar o jogador no topo do plano
   scene.add(player);
 
-  // Adicionar eventos de mouse para controlar a câmera
-  var isDragging = false;
-  var previousMousePosition = {
-    x: 0,
-    y: 0
-  };
-  renderer.domElement.addEventListener('mousedown', function (event) {
-    isDragging = true;
-    previousMousePosition = {
-      x: event.clientX,
-      y: event.clientY
-    };
-  });
-  renderer.domElement.addEventListener('mouseup', function (event) {
-    isDragging = false;
-  });
-  renderer.domElement.addEventListener('mousemove', function (event) {
-    var deltaMove = {
-      x: event.clientX - previousMousePosition.x,
-      y: event.clientY - previousMousePosition.y
-    };
-    if (isDragging) {
-      var deltaRotationQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(toRadians(deltaMove.y * 0.5), toRadians(deltaMove.x * 0.5), 0, 'XYZ'));
-      camera.position.sub(player.position); // Ajustar a posição da câmera em relação ao jogador
-      camera.position.applyQuaternion(deltaRotationQuaternion); // Aplicar rotação à posição da câmera
-      camera.position.add(player.position); // Recolocar a câmera na posição correta em relação ao jogador
-      camera.lookAt(player.position); // Focar a câmera no jogador
-    }
-    previousMousePosition = {
-      x: event.clientX,
-      y: event.clientY
-    };
-  });
-  renderer.domElement.addEventListener('wheel', function (event) {
-    var zoomSpeed = event.deltaY * 0.1;
-    var zoomDirection = camera.position.clone().sub(player.position).normalize(); // Direção do zoom em relação ao jogador
-    camera.position.add(zoomDirection.multiplyScalar(zoomSpeed)); // Ajustar a posição da câmera em relação ao jogador
-  });
-  function toRadians(angle) {
-    return angle * (Math.PI / 180);
-  }
+  // Criar os controles OrbitControls usando a câmera e o elemento de renderização
+  controls = new _OrbitControls.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; // Ativar amortecimento para movimento suave
+  controls.dampingFactor = 0.25; // Fator de amortecimento (ajuste conforme necessário)
 
-  // Adicionar evento de teclado para mover o jogador e a câmera
+  // Atualizar os controles após quaisquer alterações manuais na câmera
+  controls.update();
   document.addEventListener('keydown', function (event) {
     var moveDistance = 5; // Distância de movimento do jogador
 
@@ -38783,16 +38743,13 @@ function init() {
 
     // Mover o jogador na direção correta em relação ao mundo
     player.translateOnAxis(moveDirection, moveDistance);
-
-    // Atualizar a posição da câmera para seguir o jogador
-    camera.position.copy(player.position).add(new THREE.Vector3(0, 50, 100)); // Manter a mesma altura e distância da câmera em relação ao jogador
-    camera.lookAt(player.position); // Focar a câmera no jogador
   });
 }
 
 // Função de animação
 function animate() {
   requestAnimationFrame(animate); // Chamada recursiva para animação
+  controls.update(); // Atualizar os controles do OrbitControls
   renderer.render(scene, camera); // Renderizar a cena
 }
 
