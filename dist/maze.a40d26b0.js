@@ -38669,15 +38669,96 @@ var OrbitControls = exports.OrbitControls = /*#__PURE__*/function (_EventDispatc
   _inherits(OrbitControls, _EventDispatcher);
   return _createClass(OrbitControls);
 }(_three.EventDispatcher);
+},{"three":"node_modules/three/build/three.module.js"}],"node_modules/three/examples/jsm/effects/AnaglyphEffect.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.AnaglyphEffect = void 0;
+var _three = require("three");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+var AnaglyphEffect = exports.AnaglyphEffect = /*#__PURE__*/_createClass(function AnaglyphEffect(renderer) {
+  var width = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 512;
+  var height = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 512;
+  _classCallCheck(this, AnaglyphEffect);
+  // Dubois matrices from https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.7.6968&rep=rep1&type=pdf#page=4
+
+  this.colorMatrixLeft = new _three.Matrix3().fromArray([0.456100, -0.0400822, -0.0152161, 0.500484, -0.0378246, -0.0205971, 0.176381, -0.0157589, -0.00546856]);
+  this.colorMatrixRight = new _three.Matrix3().fromArray([-0.0434706, 0.378476, -0.0721527, -0.0879388, 0.73364, -0.112961, -0.00155529, -0.0184503, 1.2264]);
+  var _camera = new _three.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  var _scene = new _three.Scene();
+  var _stereo = new _three.StereoCamera();
+  var _params = {
+    minFilter: _three.LinearFilter,
+    magFilter: _three.NearestFilter,
+    format: _three.RGBAFormat
+  };
+  var _renderTargetL = new _three.WebGLRenderTarget(width, height, _params);
+  var _renderTargetR = new _three.WebGLRenderTarget(width, height, _params);
+  var _material = new _three.ShaderMaterial({
+    uniforms: {
+      'mapLeft': {
+        value: _renderTargetL.texture
+      },
+      'mapRight': {
+        value: _renderTargetR.texture
+      },
+      'colorMatrixLeft': {
+        value: this.colorMatrixLeft
+      },
+      'colorMatrixRight': {
+        value: this.colorMatrixRight
+      }
+    },
+    vertexShader: ['varying vec2 vUv;', 'void main() {', '	vUv = vec2( uv.x, uv.y );', '	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );', '}'].join('\n'),
+    fragmentShader: ['uniform sampler2D mapLeft;', 'uniform sampler2D mapRight;', 'varying vec2 vUv;', 'uniform mat3 colorMatrixLeft;', 'uniform mat3 colorMatrixRight;', 'void main() {', '	vec2 uv = vUv;', '	vec4 colorL = texture2D( mapLeft, uv );', '	vec4 colorR = texture2D( mapRight, uv );', '	vec3 color = clamp(', '			colorMatrixLeft * colorL.rgb +', '			colorMatrixRight * colorR.rgb, 0., 1. );', '	gl_FragColor = vec4(', '			color.r, color.g, color.b,', '			max( colorL.a, colorR.a ) );', '	#include <tonemapping_fragment>', '	#include <colorspace_fragment>', '}'].join('\n')
+  });
+  var _mesh = new _three.Mesh(new _three.PlaneGeometry(2, 2), _material);
+  _scene.add(_mesh);
+  this.setSize = function (width, height) {
+    renderer.setSize(width, height);
+    var pixelRatio = renderer.getPixelRatio();
+    _renderTargetL.setSize(width * pixelRatio, height * pixelRatio);
+    _renderTargetR.setSize(width * pixelRatio, height * pixelRatio);
+  };
+  this.render = function (scene, camera) {
+    var currentRenderTarget = renderer.getRenderTarget();
+    if (scene.matrixWorldAutoUpdate === true) scene.updateMatrixWorld();
+    if (camera.parent === null && camera.matrixWorldAutoUpdate === true) camera.updateMatrixWorld();
+    _stereo.update(camera);
+    renderer.setRenderTarget(_renderTargetL);
+    renderer.clear();
+    renderer.render(scene, _stereo.cameraL);
+    renderer.setRenderTarget(_renderTargetR);
+    renderer.clear();
+    renderer.render(scene, _stereo.cameraR);
+    renderer.setRenderTarget(null);
+    renderer.render(_scene, _camera);
+    renderer.setRenderTarget(currentRenderTarget);
+  };
+  this.dispose = function () {
+    _renderTargetL.dispose();
+    _renderTargetR.dispose();
+    _mesh.geometry.dispose();
+    _mesh.material.dispose();
+  };
+});
 },{"three":"node_modules/three/build/three.module.js"}],"maze.js":[function(require,module,exports) {
 "use strict";
 
 var THREE = _interopRequireWildcard(require("three"));
 var _OrbitControls = require("three/examples/jsm/controls/OrbitControls");
+var _AnaglyphEffect = require("three/examples/jsm/effects/AnaglyphEffect.js");
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 // Definir variáveis globais da cena, câmera e renderizador
-var scene, camera, renderer, controls;
+var scene, camera, renderer, controls, anaglyphEffect;
 
 // Inicializar a cena, câmera e renderizador
 function init() {
@@ -38691,9 +38772,26 @@ function init() {
   // Criar o renderizador
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  var anaglyphEffect = new _AnaglyphEffect.AnaglyphEffect(renderer);
 
   // Adicionar o renderizador ao documento HTML
   document.body.appendChild(renderer.domElement);
+
+  //textura background
+  // var backgroundGeometry = new THREE.SphereGeometry(1000, 60, 40);
+
+  // var textureLoader = new THREE.TextureLoader();
+  // var texture = textureLoader.load('./texture_pack/sky.jpg');
+
+  // var backgroundMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide });
+
+  // var background = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
+  // scene.add(background);
+
+  var loader = new THREE.TextureLoader();
+  loader.load('https://images.pexels.com/photos/1205301/pexels-photo-1205301.jpeg', function (texture) {
+    scene.background = texture;
+  });
 
   // Criar um plano para representar o chão
   var groundGeometry = new THREE.PlaneGeometry(200, 200);
@@ -38725,25 +38823,26 @@ function init() {
     var moveDistance = 5; // Distância de movimento do jogador
 
     // Definir a direção de movimento com base na tecla pressionada
-    var moveDirection;
-    switch (event.key) {
-      case 'ArrowLeft':
-        moveDirection = new THREE.Vector3(-1, 0, 0);
-        break;
-      case 'ArrowRight':
-        moveDirection = new THREE.Vector3(1, 0, 0);
-        break;
-      case 'ArrowUp':
-        moveDirection = new THREE.Vector3(0, 0, -1);
-        break;
-      case 'ArrowDown':
-        moveDirection = new THREE.Vector3(0, 0, 1);
-        break;
-    }
+    // var moveDirection;
+    // switch (event.key) {
+    //     case 'A':
+    //         moveDirection = new THREE.Vector3(-1, 0, 0);
+    //         break;
+    //     case 'D':
+    //         moveDirection = new THREE.Vector3(1, 0, 0);
+    //         break;
+    //     case 'W':
+    //         moveDirection = new THREE.Vector3(0, 0, -1);
+    //         break;
+    //     case 'S':
+    //         moveDirection = new THREE.Vector3(0, 0, 1);
+    //         break;
+    // }
 
     // Mover o jogador na direção correta em relação ao mundo
-    player.translateOnAxis(moveDirection, moveDistance);
+    // player.translateOnAxis(moveDirection, moveDistance);
   });
+  console.log("scena", scene);
 }
 
 // Função de animação
@@ -38756,7 +38855,7 @@ function animate() {
 // Chamar as funções init() e animate() para iniciar a aplicação
 init();
 animate();
-},{"three":"node_modules/three/build/three.module.js","three/examples/jsm/controls/OrbitControls":"node_modules/three/examples/jsm/controls/OrbitControls.js"}],"../../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"three":"node_modules/three/build/three.module.js","three/examples/jsm/controls/OrbitControls":"node_modules/three/examples/jsm/controls/OrbitControls.js","three/examples/jsm/effects/AnaglyphEffect.js":"node_modules/three/examples/jsm/effects/AnaglyphEffect.js"}],"../../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -38781,7 +38880,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59838" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56841" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

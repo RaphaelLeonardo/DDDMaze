@@ -1,8 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { AnaglyphEffect } from 'three/examples/jsm/effects/AnaglyphEffect.js';
+
 
 // Definir variáveis globais da cena, câmera e renderizador
-var scene, camera, renderer, controls;
+var scene, camera, renderer, controls, anaglyphEffect;
 
 // Inicializar a cena, câmera e renderizador
 function init() {
@@ -17,8 +19,29 @@ function init() {
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
 
+    const anaglyphEffect = new AnaglyphEffect(renderer);
+
     // Adicionar o renderizador ao documento HTML
     document.body.appendChild(renderer.domElement);
+
+    //textura background
+    // var backgroundGeometry = new THREE.SphereGeometry(1000, 60, 40);
+
+    // var textureLoader = new THREE.TextureLoader();
+    // var texture = textureLoader.load('./texture_pack/sky.jpg');
+
+    // var backgroundMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide });
+
+    // var background = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
+    // scene.add(background);
+
+
+
+    const loader = new THREE.TextureLoader();
+    loader.load('https://images.pexels.com/photos/1205301/pexels-photo-1205301.jpeg' , function(texture)
+            {
+             scene.background = texture;  
+            });
 
     // Criar um plano para representar o chão
     var groundGeometry = new THREE.PlaneGeometry(200, 200);
@@ -46,26 +69,26 @@ function init() {
         var moveDistance = 5; // Distância de movimento do jogador
     
         // Definir a direção de movimento com base na tecla pressionada
-        var moveDirection;
-        switch (event.key) {
-            case 'ArrowLeft':
-                moveDirection = new THREE.Vector3(-1, 0, 0);
-                break;
-            case 'ArrowRight':
-                moveDirection = new THREE.Vector3(1, 0, 0);
-                break;
-            case 'ArrowUp':
-                moveDirection = new THREE.Vector3(0, 0, -1);
-                break;
-            case 'ArrowDown':
-                moveDirection = new THREE.Vector3(0, 0, 1);
-                break;
-        }
+        // var moveDirection;
+        // switch (event.key) {
+        //     case 'A':
+        //         moveDirection = new THREE.Vector3(-1, 0, 0);
+        //         break;
+        //     case 'D':
+        //         moveDirection = new THREE.Vector3(1, 0, 0);
+        //         break;
+        //     case 'W':
+        //         moveDirection = new THREE.Vector3(0, 0, -1);
+        //         break;
+        //     case 'S':
+        //         moveDirection = new THREE.Vector3(0, 0, 1);
+        //         break;
+        // }
     
         // Mover o jogador na direção correta em relação ao mundo
-        player.translateOnAxis(moveDirection, moveDistance);
+        // player.translateOnAxis(moveDirection, moveDistance);
     });
-    
+    console.log("scena", scene)
 }
 
 // Função de animação
@@ -73,6 +96,7 @@ function animate() {
     requestAnimationFrame(animate); // Chamada recursiva para animação
     controls.update(); // Atualizar os controles do OrbitControls
     renderer.render(scene, camera); // Renderizar a cena
+    
 }
 
 // Chamar as funções init() e animate() para iniciar a aplicação
