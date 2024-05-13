@@ -3,8 +3,9 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { AnaglyphEffect } from 'three/examples/jsm/effects/AnaglyphEffect.js';
 
 
+
 // Definir variáveis globais da cena, câmera e renderizador
-var scene, camera, renderer, controls, anaglyphEffect;
+var scene, camera, renderer, controls, effect;
 
 // Inicializar a cena, câmera e renderizador
 function init() {
@@ -19,7 +20,11 @@ function init() {
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    const anaglyphEffect = new AnaglyphEffect(renderer);
+    effect = new AnaglyphEffect(renderer);
+    effect.eyeSeparation = 0.08; // Aumentar a distância entre os olhos
+    effect.focalLength = 0.05; // Reduzir a distância focal para um efeito mais pronunciado
+    effect.renderWidth = window.innerWidth;
+    effect.renderHeight = window.innerHeight;
 
     // Adicionar o renderizador ao documento HTML
     document.body.appendChild(renderer.domElement);
@@ -44,11 +49,11 @@ function init() {
             });
 
     // Criar um plano para representar o chão
-    var groundGeometry = new THREE.PlaneGeometry(200, 200);
-    var groundMaterial = new THREE.MeshBasicMaterial({ color: 0x888888, side: THREE.DoubleSide });
-    var ground = new THREE.Mesh(groundGeometry, groundMaterial);
-    ground.rotation.x = Math.PI / 2; // Rotacionar o plano para que fique no eixo X
-    scene.add(ground);
+    // var groundGeometry = new THREE.PlaneGeometry(200, 200);
+    // var groundMaterial = new THREE.MeshBasicMaterial({ color: 0x888888, side: THREE.DoubleSide });
+    // var ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    // ground.rotation.x = Math.PI / 2; // Rotacionar o plano para que fique no eixo X
+    // scene.add(ground);
 
     // Criar um objeto para representar o jogador
     var playerGeometry = new THREE.BoxGeometry(5, 5, 5);
@@ -69,24 +74,24 @@ function init() {
         var moveDistance = 5; // Distância de movimento do jogador
     
         // Definir a direção de movimento com base na tecla pressionada
-        // var moveDirection;
-        // switch (event.key) {
-        //     case 'A':
-        //         moveDirection = new THREE.Vector3(-1, 0, 0);
-        //         break;
-        //     case 'D':
-        //         moveDirection = new THREE.Vector3(1, 0, 0);
-        //         break;
-        //     case 'W':
-        //         moveDirection = new THREE.Vector3(0, 0, -1);
-        //         break;
-        //     case 'S':
-        //         moveDirection = new THREE.Vector3(0, 0, 1);
-        //         break;
-        // }
+        var moveDirection;
+        switch (event.key) {
+            case 'A':
+                moveDirection = new THREE.Vector3(-1, 0, 0);
+                break;
+            case 'D':
+                moveDirection = new THREE.Vector3(1, 0, 0);
+                break;
+            case 'W':
+                moveDirection = new THREE.Vector3(0, 0, -1);
+                break;
+            case 'S':
+                moveDirection = new THREE.Vector3(0, 0, 1);
+                break;
+        }
     
         // Mover o jogador na direção correta em relação ao mundo
-        // player.translateOnAxis(moveDirection, moveDistance);
+        player.translateOnAxis(moveDirection, moveDistance);
     });
     console.log("scena", scene)
 }
@@ -95,7 +100,8 @@ function init() {
 function animate() {
     requestAnimationFrame(animate); // Chamada recursiva para animação
     controls.update(); // Atualizar os controles do OrbitControls
-    renderer.render(scene, camera); // Renderizar a cena
+    //renderer.render(scene, camera); // Renderizar a cena
+    effect.render(scene, camera);
     
 }
 

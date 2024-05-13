@@ -38758,7 +38758,7 @@ var _AnaglyphEffect = require("three/examples/jsm/effects/AnaglyphEffect.js");
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 // Definir variáveis globais da cena, câmera e renderizador
-var scene, camera, renderer, controls, anaglyphEffect;
+var scene, camera, renderer, controls, effect;
 
 // Inicializar a cena, câmera e renderizador
 function init() {
@@ -38772,7 +38772,11 @@ function init() {
   // Criar o renderizador
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  var anaglyphEffect = new _AnaglyphEffect.AnaglyphEffect(renderer);
+  effect = new _AnaglyphEffect.AnaglyphEffect(renderer);
+  effect.eyeSeparation = 0.08; // Aumentar a distância entre os olhos
+  effect.focalLength = 0.05; // Reduzir a distância focal para um efeito mais pronunciado
+  effect.renderWidth = window.innerWidth;
+  effect.renderHeight = window.innerHeight;
 
   // Adicionar o renderizador ao documento HTML
   document.body.appendChild(renderer.domElement);
@@ -38794,14 +38798,11 @@ function init() {
   });
 
   // Criar um plano para representar o chão
-  var groundGeometry = new THREE.PlaneGeometry(200, 200);
-  var groundMaterial = new THREE.MeshBasicMaterial({
-    color: 0x888888,
-    side: THREE.DoubleSide
-  });
-  var ground = new THREE.Mesh(groundGeometry, groundMaterial);
-  ground.rotation.x = Math.PI / 2; // Rotacionar o plano para que fique no eixo X
-  scene.add(ground);
+  // var groundGeometry = new THREE.PlaneGeometry(200, 200);
+  // var groundMaterial = new THREE.MeshBasicMaterial({ color: 0x888888, side: THREE.DoubleSide });
+  // var ground = new THREE.Mesh(groundGeometry, groundMaterial);
+  // ground.rotation.x = Math.PI / 2; // Rotacionar o plano para que fique no eixo X
+  // scene.add(ground);
 
   // Criar um objeto para representar o jogador
   var playerGeometry = new THREE.BoxGeometry(5, 5, 5);
@@ -38823,24 +38824,24 @@ function init() {
     var moveDistance = 5; // Distância de movimento do jogador
 
     // Definir a direção de movimento com base na tecla pressionada
-    // var moveDirection;
-    // switch (event.key) {
-    //     case 'A':
-    //         moveDirection = new THREE.Vector3(-1, 0, 0);
-    //         break;
-    //     case 'D':
-    //         moveDirection = new THREE.Vector3(1, 0, 0);
-    //         break;
-    //     case 'W':
-    //         moveDirection = new THREE.Vector3(0, 0, -1);
-    //         break;
-    //     case 'S':
-    //         moveDirection = new THREE.Vector3(0, 0, 1);
-    //         break;
-    // }
+    var moveDirection;
+    switch (event.key) {
+      case 'A':
+        moveDirection = new THREE.Vector3(-1, 0, 0);
+        break;
+      case 'D':
+        moveDirection = new THREE.Vector3(1, 0, 0);
+        break;
+      case 'W':
+        moveDirection = new THREE.Vector3(0, 0, -1);
+        break;
+      case 'S':
+        moveDirection = new THREE.Vector3(0, 0, 1);
+        break;
+    }
 
     // Mover o jogador na direção correta em relação ao mundo
-    // player.translateOnAxis(moveDirection, moveDistance);
+    player.translateOnAxis(moveDirection, moveDistance);
   });
   console.log("scena", scene);
 }
@@ -38849,7 +38850,8 @@ function init() {
 function animate() {
   requestAnimationFrame(animate); // Chamada recursiva para animação
   controls.update(); // Atualizar os controles do OrbitControls
-  renderer.render(scene, camera); // Renderizar a cena
+  //renderer.render(scene, camera); // Renderizar a cena
+  effect.render(scene, camera);
 }
 
 // Chamar as funções init() e animate() para iniciar a aplicação
@@ -38880,7 +38882,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56841" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51147" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
